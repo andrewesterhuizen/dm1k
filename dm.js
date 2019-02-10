@@ -1,106 +1,121 @@
 document.head.innerHTML += `<style>*{font-family:monospace;}</style>`;
 
-var sineString = "sine";
-var buttonString = "button";
-var stepLength = 16;
-var forEachString = "forEach";
-var innerTextString = "innerText";
-var documentBody = document.body;
-var audioContext = new AudioContext();
+// aliases, TODO: replace these with single letter vars
+let documentBodyAlias = document.body;
+let l = "map"; // use map for every loop because 3 letters
+let o = "onclick";
+let createElementAlias = e => document.createElement(e);
+let createButton = () => createElementAlias("button");
+let createDiv = () => createElementAlias("div");
+let appendChildAlias = (p, c) => p.appendChild(c);
+let appendToDocument = c => appendChildAlias(documentBodyAlias, c);
+let newArray = stepLength => Array(stepLength).fill(false);
+let handleInnerText = (el, on) => (el.innerText = on ? "x" : "-");
 
-var offSymbol = "-";
-var onSymbol = "x";
+// vars
+let audioContext = new AudioContext();
+let stepLength = 16;
+let paused = true;
+let currentBeat = 1;
+let bpm = 130;
 
-var createElement = e => document.createElement(e);
-var appendChild = (p, c) => p.appendChild(c);
-var newArray = stepLength => new Array(stepLength).fill(false);
-
-var presets = [
-  [sineString, 0.3, 0.02, 180, 65],
-  ["triangle", 0.02, 0.02, 400, 200],
-  [sineString, 0.1, 0.1, 300, 100],
-  [sineString, 0.05, 0.02, 9000, 9000]
+// osc presets
+let presets = [
+  [0.3, 0.02, 180, 65],
+  [0.02, 0.02, 400, 200],
+  [0.1, 0.1, 300, 100],
+  [0.05, 0.02, 9000, 9000]
 ];
 
 // play oscilator with preset settings
-var playOsc = ([type, ampDecay, pitchDecay, startFreq, endFreq]) => {
-  var lr = "linearRampToValueAtTime";
+let playOscillator = (
+  [ampDecay, pitchDecay, startFreq, endFreq],
+  lr = "linearRampToValueAtTime"
+) => {
+  let osc = audioContext.createOscillator();
+  let gain = audioContext.createGain();
 
-  var osc = audioContext.createOscillator();
-  var gain = audioContext.createGain();
+  let now = audioContext.currentTime;
 
-  var now = audioContext.currentTime;
-
-  osc.type = type;
+  osc.type = "sine";
   osc.frequency.value = startFreq;
+
+  osc.frequency[lr](endFreq, now + pitchDecay); // pitch envelope
+  gain.gain[lr](0, now + ampDecay); // amp envelope
+
   osc.start();
-  osc.frequency[lr](endFreq, now + pitchDecay);
-  gain.gain.setValueAtTime(1, now);
-  gain.gain[lr](0, now + ampDecay);
+
   osc.connect(gain);
   gain.connect(audioContext.destination);
 };
 
-var sequences = newArray(4).map(() => newArray(stepLength));
+let sequences = newArray(4)[l](() => newArray(stepLength));
 
-sequences[forEachString]((sequence, sequenceIndex) => {
-  var sequenceButtonContainer = createElement("div");
+documentBodyAlias.innerHTML += "dm1k";
 
-  appendChild(documentBody, sequenceButtonContainer);
+sequences[l]((sequence, sequenceIndex) => {
+  let sequenceButtonContainer = createDiv();
+  appendToDocument(sequenceButtonContainer);
 
-  sequence[forEachString]((step, stepIndex) => {
-    var stepButton = createElement(buttonString);
-    stepButton[innerTextString] = offSymbol;
-    stepButton.onclick = () => {
-      sequences[sequenceIndex][stepIndex] = !sequences[sequenceIndex][
-        stepIndex
-      ];
-      step = !step;
-      stepButton[innerTextString] = step ? onSymbol : offSymbol;
+  // create the button for each step in the sequence
+  sequence[l]((_, stepIndex) => {
+    let stepButton = createButton();
+    handleInnerText(stepButton);
+    stepButton[o] = () => {
+      // handle toggling step value and button text
+      let nextValue = !sequences[sequenceIndex][stepIndex];
+      sequences[sequenceIndex][stepIndex] = nextValue;
+      handleInnerText(stepButton, nextValue);
     };
-    appendChild(sequenceButtonContainer, stepButton);
+    appendChildAlias(sequenceButtonContainer, stepButton);
   });
 });
-var c = createElement("div");
-appendChild(documentBody, c);
 
-var createStepButton = () => {
-  var button = createElement(buttonString);
-  button[innerTextString] = offSymbol;
-  appendChild(c, button);
+// create step indicator buttons container
+let stepIndicatorContainer = createDiv();
+appendToDocument(stepIndicatorContainer);
+
+// create step indicator buttons
+let indicatorButtons = newArray(stepLength)[l](() => {
+  let button = createButton();
+  handleInnerText(button);
+  appendChildAlias(stepIndicatorContainer, button);
   return button;
-};
+});
 
-var indicators = newArray(stepLength).map(createStepButton);
+// append button rows to document
+indicatorButtons[l](indicatorButton => appendChildAlias(stepIndicatorContainer, indicatorButton));
 
-indicators[forEachString](i => appendChild(c, i));
-
-var currentBeat = 1;
-let p = true;
-
-var bpm = 130;
-
-(beat = () => {
-  if (!p) {
-    sequences[forEachString](
-      (sq, i) => sq[currentBeat - 1] && playOsc(presets[i])
+// timing system
+(b = () => {
+  if (!paused) {
+    // loop over sequences and play oscillator if step = true
+    sequences[l](
+      (sequence, sequenceIndex) =>
+        sequence[currentBeat - 1] && playOscillator(presets[sequenceIndex])
     );
-    indicators[forEachString](
-      (j, i) => (j[innerTextString] = i === currentBeat ? onSymbol : offSymbol)
+
+    // handle rendering indicator steps
+    indicatorButtons[l]((indicatorButton, indicatorButtonIndex) =>
+      handleInnerText(indicatorButton, indicatorButtonIndex === currentBeat)
     );
-    if (currentBeat == stepLength) currentBeat = 0;
-    currentBeat++;
+
+    // reset beat if greater than max length and increment
+    // incrementing in if statement to save a line
+    if (currentBeat++ == stepLength - 1) currentBeat = 0;
   }
-  setTimeout(beat, 15000 / bpm);
+  setTimeout(b, 15000 / bpm);
 })();
 
-var playPauseButton = createElement(buttonString);
-playPauseButton[innerTextString] = "play/pause";
-playPauseButton.onclick = () => (p = !p);
-appendChild(documentBody, playPauseButton);
+// create play button
+let playPauseButton = createButton();
+playPauseButton.innerText = "play/pause";
+playPauseButton[o] = () => (paused = !paused);
+appendToDocument(playPauseButton);
 
-var bpmInput = createElement("input");
+// create tempo input
+let bpmInput = createElementAlias("input");
 bpmInput.type = "number";
 bpmInput.value = bpm;
-bpmInput.onclick = e => (bpm = e.target.value);
-appendChild(documentBody, bpmInput);
+bpmInput[o] = e => (bpm = e.target.value);
+appendToDocument(bpmInput);
