@@ -1,14 +1,13 @@
 document.head.innerHTML += `<style>*{font-family:monospace;}</style>`;
 
-// aliases, TODO: replace these with single letter vars
-let documentBodyAlias = document.body;
+// aliases
 let l = "map"; // use map for every loop because 3 letters
 let o = "onclick";
 let createElementAlias = e => document.createElement(e);
 let createButton = () => createElementAlias("button");
 let createDiv = () => createElementAlias("div");
 let appendChildAlias = (p, c) => p.appendChild(c);
-let appendToDocument = c => appendChildAlias(documentBodyAlias, c);
+let appendToDocument = c => appendChildAlias(b, c);
 let newArray = stepLength => Array(stepLength).fill(false);
 let handleInnerText = (el, on) => (el.innerText = on ? "x" : "-");
 
@@ -16,7 +15,7 @@ let handleInnerText = (el, on) => (el.innerText = on ? "x" : "-");
 let audioContext = new AudioContext();
 let stepLength = 16;
 let paused = true;
-let currentBeat = 1;
+let currentBeat = 0;
 let bpm = 130;
 
 // osc presets
@@ -51,7 +50,7 @@ let playOscillator = (
 
 let sequences = newArray(4)[l](() => newArray(stepLength));
 
-documentBodyAlias.innerHTML += "dm1k";
+b.innerHTML += "drum1k";
 
 sequences[l]((sequence, sequenceIndex) => {
   let sequenceButtonContainer = createDiv();
@@ -87,12 +86,11 @@ let indicatorButtons = newArray(stepLength)[l](() => {
 indicatorButtons[l](indicatorButton => appendChildAlias(stepIndicatorContainer, indicatorButton));
 
 // timing system
-(b = () => {
+(x = () => {
   if (!paused) {
     // loop over sequences and play oscillator if step = true
     sequences[l](
-      (sequence, sequenceIndex) =>
-        sequence[currentBeat - 1] && playOscillator(presets[sequenceIndex])
+      (sequence, sequenceIndex) => sequence[currentBeat] && playOscillator(presets[sequenceIndex])
     );
 
     // handle rendering indicator steps
@@ -104,12 +102,12 @@ indicatorButtons[l](indicatorButton => appendChildAlias(stepIndicatorContainer, 
     // incrementing in if statement to save a line
     if (currentBeat++ == stepLength - 1) currentBeat = 0;
   }
-  setTimeout(b, 15000 / bpm);
+  setTimeout(x, 15000 / bpm);
 })();
 
 // create play button
 let playPauseButton = createButton();
-playPauseButton.innerText = "play/pause";
+playPauseButton.innerText = ">/||";
 playPauseButton[o] = () => (paused = !paused);
 appendToDocument(playPauseButton);
 
