@@ -36,7 +36,6 @@ let playOscillator = (
 
   let now = audioContext.currentTime;
 
-  osc.type = "sine";
   osc.frequency.value = startFreq;
 
   osc.frequency[lr](endFreq, now + pitchDecay); // pitch envelope
@@ -50,7 +49,7 @@ let playOscillator = (
 
 let sequences = newArray(4)[l](() => newArray(stepLength));
 
-b.innerHTML += "drum1k";
+b.innerHTML += "dm1k";
 
 sequences[l]((sequence, sequenceIndex) => {
   let sequenceButtonContainer = createDiv();
