@@ -1,5 +1,4 @@
 document.head.innerHTML += `<style>*{font-family:monospace;}</style>`;
-
 // aliases
 let l = "map"; // use map for every loop because 3 letters
 let o = "onclick";
@@ -48,8 +47,6 @@ let playOscillator = (
 };
 
 let sequences = newArray(4)[l](() => newArray(stepLength));
-
-b.innerHTML += "dm1k";
 
 sequences[l]((sequence, sequenceIndex) => {
   let sequenceButtonContainer = createDiv();
@@ -106,7 +103,7 @@ indicatorButtons[l](indicatorButton => appendChildAlias(stepIndicatorContainer, 
 
 // create play button
 let playPauseButton = createButton();
-playPauseButton.innerText = ">/||";
+playPauseButton.innerText = "▶/❙❙";
 playPauseButton[o] = () => (paused = !paused);
 appendToDocument(playPauseButton);
 
