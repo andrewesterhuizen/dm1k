@@ -18,18 +18,10 @@ let currentBeat = 0;
 let bpm = 130;
 
 // osc presets
-let presets = [
-  [0.3, 0.02, 180, 65],
-  [0.02, 0.02, 255, 180],
-  [0.1, 0.1, 300, 100],
-  [0.02, 0.01, 5000, 9000]
-];
+let presets = [[0.02, 180, 65], [0.02, 255, 180], [0.1, 300, 100], [0.01, 6000, 7000]];
 
 // play oscilator with preset settings
-let playOscillator = (
-  [ampDecay, pitchDecay, startFreq, endFreq],
-  lr = "linearRampToValueAtTime"
-) => {
+let playOscillator = ([pitchDecay, startFreq, endFreq]) => {
   let osc = audioContext.createOscillator();
   let gain = audioContext.createGain();
 
@@ -37,8 +29,8 @@ let playOscillator = (
 
   osc.frequency.value = startFreq;
 
-  osc.frequency[lr](endFreq, now + pitchDecay); // pitch envelope
-  gain.gain[lr](0, now + ampDecay); // amp envelope
+  osc.frequency.linearRampToValueAtTime(endFreq, now + pitchDecay); // pitch envelope
+  gain.gain.setTargetAtTime(0, now + 0.03, 0.01);
 
   osc.start();
 
