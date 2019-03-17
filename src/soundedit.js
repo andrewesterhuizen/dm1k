@@ -1,3 +1,5 @@
+// script for experimenting with different synthesized drum sounds in development
+
 const editContainer = document.createElement("div");
 editContainer.className = "edit-container";
 

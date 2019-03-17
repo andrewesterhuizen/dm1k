@@ -1,5 +1,5 @@
 document.head.innerHTML += `<style>*{font-family:monospace;}</style>`;
-// aliases
+// aliases, these get minified to single letter variables at build time
 let l = "map"; // use map for every loop because 3 letters
 let o = "onclick";
 let createElementAlias = e => document.createElement(e);
